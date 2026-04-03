@@ -1,0 +1,20 @@
+{
+  "name": "rpc-gateway",
+  "private": true,
+  "workspaces": [
+    "packages/shared",
+    "packages/backend",
+    "packages/frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @rpc-gateway/backend\" \"npm run dev -w @rpc-gateway/frontend\"",
+    "build": "npm run build -w @rpc-gateway/shared && npm run build -w @rpc-gateway/backend && npm run build -w @rpc-gateway/frontend",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint 'packages/*/src/**/*.{ts,tsx}'"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.0",
+    "prettier": "^3.4.0"
+  }
+}
