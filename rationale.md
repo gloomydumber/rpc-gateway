@@ -124,7 +124,7 @@ GET /balance?address=...
 | Per-IP      | 30 req/min  | 단일 사용자/봇의 과도한 요청 차단               |
 | Per-Address | 10 req/min  | 특정 주소에 대한 반복 조회 방지 (bot/spam 대응) |
 
-**임계값 근거**: Infura 무료 티어는 10 req/sec (일 100K), Alchemy 무료 티어는 ~330 CU/sec (`getBalance` = 19 CU, 약 17 calls/sec)입니다. Global 100/min (~1.67/sec)은 두 provider의 무료 티어 한도 내에서 안전하게 운영 가능한 수치이며, retry와 fallback을 위한 여유분을 확보했습니다. Per-address 10/min은 15초 cache TTL과 결합하면 실제 RPC 호출은 분당 최대 4회 수준으로 제한됩니다.
+**임계값 근거**: Infura 무료 티어는 500 credits/sec (일 3M credits), Alchemy 무료 티어는 ~330 CU/sec (`getBalance` = 20 CU, 약 16.5 calls/sec)입니다. Global 100/min (~1.67/sec)은 두 provider의 무료 티어 한도 내에서 안전하게 운영 가능한 수치이며, retry와 fallback을 위한 여유분을 확보했습니다. Per-address 10/min은 15초 cache TTL과 결합하면 실제 RPC 호출은 분당 최대 4회 수준으로 제한됩니다.
 
 ### Cache
 

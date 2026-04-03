@@ -53,7 +53,7 @@ These are server-side enforcements. Unlike frontend protections, they cannot be 
 - All thresholds configurable via environment variables
 
 *Threshold rationale:*
-- Reference: Infura free tier allows 10 req/sec (100K/day), Alchemy free tier allows ~330 CU/sec (`getBalance` = 19 CU, so ~17 calls/sec)
+- Reference: Infura free tier allows 500 credits/sec (3M credits/day), Alchemy free tier allows ~330 CU/sec (`getBalance` = 20 CU, so ~16.5 calls/sec)
 - Global 100/min (~1.67/sec) stays well within both provider free tiers, leaving headroom for retries and fallback
 - Per-IP 30/min (0.5/sec) is generous for manual usage but blocks automated abuse from a single source
 - Per-address 10/min pairs with the 15s cache TTL — most repeated queries within the window will be cache hits, so 10 actual provider calls per address per minute is rarely reached in normal use
