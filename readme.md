@@ -258,3 +258,35 @@ Primary provider(Infura) 장애 시, fallback을 통해 secondary provider(Alche
 ### Infrastructure-level DDoS 미대응
 
 이 프로젝트는 PoC 단계로서, application-level 보호만 구현하였습니다. 대규모 인프라 공격에 대해서는 대응하지 않았습니다.
+
+## 실행 방법
+
+### 사전 요구사항
+
+- Node.js 18+
+- npm 7+ (workspaces 지원)
+- Infura 또는 Alchemy의 Sepolia 테스트넷 API Key
+
+### 설치 및 실행
+
+```bash
+# 의존성 설치
+npm install
+
+# 환경변수 설정
+cp .env.example .env
+# .env 파일에 RPC Provider API Key를 입력
+
+# Shared 패키지 빌드
+npm run build -w @rpc-gateway/shared
+
+# Backend + Frontend 동시 실행
+npm run dev
+```
+
+- Backend: `http://localhost:3000`
+- Frontend: `http://localhost:5173`
+
+### 환경변수
+
+모든 설정 값은 `.env` 파일에서 관리됩니다. Rate limit 임계값, Cache TTL, RPC timeout, retry 옵션 등을 `.env.example`에서 확인할 수 있습니다.
