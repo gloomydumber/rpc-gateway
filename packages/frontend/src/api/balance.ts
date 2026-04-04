@@ -2,7 +2,6 @@ export interface BalanceData {
   address: string;
   balanceWei: string;
   balanceEth: string;
-  cached: boolean;
 }
 
 interface ErrorData {
@@ -10,7 +9,7 @@ interface ErrorData {
   code: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = '/api';
 
 export async function fetchBalance(address: string): Promise<BalanceData> {
   const res = await fetch(`${API_BASE}/balance?address=${encodeURIComponent(address)}`);

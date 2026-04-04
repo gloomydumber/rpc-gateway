@@ -31,9 +31,3 @@ export class ProviderError extends AppError {
   }
 }
 
-export class TimeoutError extends AppError {
-  constructor() {
-    super('The request took too long. Please try again.', ErrorCode.TIMEOUT, 504);
-    this.name = 'TimeoutError';
-  }
-}

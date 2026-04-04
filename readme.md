@@ -140,9 +140,10 @@ Cache를 통해 최신성과 효율성을 동시에 취하고자 했습니다. E
 느린 provider로 인한 blocking을 방지하고자 timeout을 도입하였고, 일시적인 에러(transient error)에도 대응하도록 제한된 횟수만큼만 retry하도록 구현했습니다.
 
 - Timeout: 5초 (viem의 `http` transport `timeout` 옵션)
-- Retry: 최대 2회, exponential backoff + jitter
-  - 1차 실패 시: 250~500ms 대기 후 재시도
-  - 2차 실패 시: 즉시 포기, 다음 provider로 fallback
+- Retry: 최대 2회 시도, exponential backoff + jitter
+  - `maxAttempts: 2`는 최초 요청을 1회로 카운트합니다. 즉, 실제 재시도(retry)는 1회이며, 총 시도 횟수가 2회입니다.
+  - 1차 시도 실패 시: 250~500ms 대기 후 재시도
+  - 2차 시도 실패 시: 즉시 포기, 다음 provider로 fallback
   - 비일시적 에러 (4xx 등)는 재시도 없이 즉시 실패 처리하여 불필요한 RPC 호출 증폭을 방지
 
 ### Provider Fallback

@@ -14,13 +14,12 @@ export class BalanceService implements BalanceQueryPort {
     }
 
     const normalized = address.toLowerCase();
-    const { balance, cached } = await this.provider.getBalance(normalized);
+    const { balance } = await this.provider.getBalance(normalized);
 
     return {
       address: normalized,
       balanceWei: balance.toString(),
       balanceEth: formatEther(balance),
-      cached,
     };
   }
 }

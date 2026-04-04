@@ -15,11 +15,6 @@ export function createApp(balanceService: BalanceQueryPort) {
   app.use(globalLimiter);
   app.use(ipLimiter);
 
-  // Health check
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
-  });
-
   // Routes
   app.use(createBalanceRouter(balanceService));
 
