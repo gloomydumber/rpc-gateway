@@ -69,10 +69,6 @@ export function createApp(balanceService: BalanceQueryPort) {
   app.use(globalLimiter); // 3. 전체 시스템 rate limit
   app.use(ipLimiter); // 4. IP별 rate limit
 
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
-  });
-
   app.use(createBalanceRouter(balanceService)); // 5. 잔액 조회 라우트 (내부에 per-address rate limit 포함)
 
   app.use(errorHandler); // 6. 에러 정규화
