@@ -1,5 +1,39 @@
 # 설계 설명 문서
 
+## 목차
+
+- [설계 개요](#설계-개요)
+- [전체 아키텍처](#전체-아키텍처)
+- [Tech Stack](#tech-stack)
+- [백엔드 설계 결정](#백엔드-설계-결정)
+  - [제한된 API Surface](#제한된-api-surface)
+  - [Address Validation](#address-validation)
+  - [3 단계 Rate Limiting](#3-단계-rate-limiting)
+  - [Cache](#cache)
+  - [Timeout & Retry](#timeout--retry)
+  - [Provider Fallback](#provider-fallback)
+  - [Error Handling & Sanitization](#error-handling--sanitization)
+  - [Observability](#observability)
+  - [요청 처리 흐름](#요청-처리-흐름)
+- [프론트엔드 설계 결정](#프론트엔드-설계-결정)
+  - [RPC Endpoint 비노출](#rpc-endpoint-비노출)
+  - [Debounce & Address Validation](#debounce--address-validation)
+  - [Refresh Throttling](#refresh-throttling)
+- [가정 공격 / 장애 시나리오](#가정-공격--장애-시나리오)
+  - [단일 IP의 대량 요청 (DoS)](#단일-ip의-대량-요청-dos)
+  - [특정 주소 반복 조회 (Bot/Spam)](#특정-주소-반복-조회-botspam)
+  - [분산 공격 (DDoS)](#분산-공격-ddos)
+  - [RPC Provider 장애](#rpc-provider-장애)
+  - [API Key 노출 시도](#api-key-노출-시도)
+- [한계](#한계)
+  - [In-memory Cache & Rate Limit](#in-memory-cache--rate-limit)
+  - [인증 미구현](#인증-미구현)
+  - [Infrastructure-level DDoS 미대응](#infrastructure-level-ddos-미대응)
+- [실행 방법](#실행-방법)
+  - [사전 요구사항](#사전-요구사항)
+  - [설치 및 실행](#설치-및-실행)
+  - [환경변수](#환경변수)
+
 ## 설계 개요
 
 이 프로젝트는 Ethereum RPC Gateway를 중심으로, 외부에 노출되는 RPC 자원을 보호하면서 지갑 잔액 조회 기능을 제공하는 것을 목표로 했습니다.
