@@ -17,7 +17,7 @@ export class AlchemyProvider implements BalanceProviderPort {
   constructor(url: string, timeoutMs: number, retryOptions: RetryOptions) {
     this.client = createPublicClient({
       chain: sepolia,
-      transport: http(url, { timeout: timeoutMs }),
+      transport: http(url, { timeout: timeoutMs, retryCount: 0 }),
     });
     this.retryOptions = retryOptions;
   }
