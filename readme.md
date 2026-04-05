@@ -135,20 +135,20 @@ Cache를 통해 최신성과 효율성을 동시에 취하고자 했습니다. E
 
 **15초 선택 근거**: 블록 생성 주기인 12초보다 약간 긴 15초를 TTL로 설정하여, 최대 약 1블록 분량의 stale data만 캐싱하도록 하였습니다. 더 짧은 TTL(예: 5초)은 같은 블록 내에서도 불필요한 RPC 호출을 유발하고, 더 긴 TTL(예: 60초)은 트랜잭션 이후 약 5블록 동안 이전 잔액이 표시되어 사용자 경험에 영향을 줄 수 있습니다.
 
-**viem 내장 `cacheTime` 미사용 이유**: viem의 `cacheTime` 옵션은 `createPublicClient` 인스턴스 단위로 동작합니다. 이 프로젝트에서는 InfuraProvider와 AlchemyProvider가 각각 독립적인 클라이언트 인스턴스를 가지기 때문에, 캐시가 provider별로 분리됩니다. Infura 장애로 Alchemy로 fallback될 경우, Alchemy 클라이언트는 Infura가 이미 조회한 데이터를 알 수 없어 불필요한 RPC 호출이 발생합니다. 이에, `CachedBalanceProvider`가 provider 체인 상위에 위치하여 어떤 provider가 요청을 처리하든 캐시를 공유하도록 했습니다.
+**viem 내장 `cacheTime` 미사용 이유** ([`cacheTime`](https://viem.sh/docs/clients/public#cachetime-optional)): viem의 `cacheTime` 옵션은 `createPublicClient` 인스턴스 단위로 동작합니다. 이 프로젝트에서는 InfuraProvider와 AlchemyProvider가 각각 독립적인 클라이언트 인스턴스를 가지기 때문에, 캐시가 provider별로 분리됩니다. Infura 장애로 Alchemy로 fallback될 경우, Alchemy 클라이언트는 Infura가 이미 조회한 데이터를 알 수 없어 불필요한 RPC 호출이 발생합니다. 이에, `CachedBalanceProvider`가 provider 체인 상위에 위치하여 어떤 provider가 요청을 처리하든 캐시를 공유하도록 했습니다.
 
 ### Timeout & Retry
 
 느린 provider로 인한 blocking을 방지하고자 timeout을 도입하였고, 일시적인 에러(transient error)에도 대응하도록 제한된 횟수만큼만 retry하도록 구현했습니다.
 
-- Timeout: 5초 (viem의 `http` transport `timeout` 옵션)
+- Timeout: 5초 (viem의 `http` transport [`timeout`](https://viem.sh/docs/clients/transports/http#timeout-optional) 옵션)
 - Retry: 최대 2회 시도, exponential backoff + jitter
   - `maxAttempts: 2`는 최초 요청을 1회로 카운트합니다. 즉, 실제 재시도(retry)는 1회이며, 총 시도 횟수가 2회입니다.
   - 1차 시도 실패 시: 250~500ms 대기 후 재시도
   - 2차 시도 실패 시: 즉시 포기, 다음 provider로 fallback
   - 비일시적 에러 (4xx 등)는 재시도 없이 즉시 실패 처리하여 불필요한 RPC 호출 증폭을 방지
 
-**viem 내장 `retryCount` 미사용 이유**: viem HTTP transport의 `retryCount`/`retryDelay` 옵션은 HTTP 레벨 에러만 재시도하며 RPC 레벨 에러는 적용되지 않습니다. 또한 viem 구현체에서는 jitter 없는 exponential backoff를 사용하여 동시 다발적 실패 시 thundering herd 문제가 발생할 수 있습니다. 더불어 viem의 기본 `retryCount`가 3으로 설정되어, 자체 구현 retry와 중복 적용되어 의도치 않은 retry 횟수 증폭이 발생할 수 있습니다. 이를 방지하기 위해 transport 옵션에 `retryCount: 0`을 명시하여 viem 내장 retry를 비활성화하고, retry 제어권을 자체 구현 로직에만 부여했습니다.
+**viem 내장 `retryCount` 미사용 이유** ([`retryCount`](https://viem.sh/docs/clients/transports/http#retrycount-optional), [`retryDelay`](https://viem.sh/docs/clients/transports/http#retrydelay-optional)): viem HTTP transport의 `retryCount`/`retryDelay` 옵션은 HTTP 레벨 에러만 재시도하며 RPC 레벨 에러는 적용되지 않습니다. 또한 viem 구현체에서는 jitter 없는 exponential backoff를 사용하여 동시 다발적 실패 시 thundering herd 문제가 발생할 수 있습니다. 더불어 viem의 기본 `retryCount`가 3으로 설정되어, 자체 구현 retry와 중복 적용되어 의도치 않은 retry 횟수 증폭이 발생할 수 있습니다. 이를 방지하기 위해 transport 옵션에 `retryCount: 0`을 명시하여 viem 내장 retry를 비활성화하고, retry 제어권을 자체 구현 로직에만 부여했습니다.
 
 ### Provider Fallback
 
