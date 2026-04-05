@@ -120,7 +120,7 @@ GET /balance?address=...
 | Per-IP      | 30 req/min  | 단일 사용자/봇의 과도한 요청 차단               |
 | Per-Address | 10 req/min  | 특정 주소에 대한 반복 조회 방지 (bot/spam 대응) |
 
-**임계값 근거**: Infura 무료 티어는 500 credits/sec (일 3M credits), Alchemy 무료 티어는 ~330 CU/sec (`getBalance` = 20 CU, 약 16.5 calls/sec)입니다. Global 100/min (~1.67/sec)은 두 provider의 무료 티어 한도 내에서 안전하게 운영 가능한 수치이며, retry와 fallback을 위한 여유분을 확보했습니다. Per-address 10/min은 15초 cache TTL과 결합하면 실제 RPC 호출은 분당 최대 4회 수준으로 제한됩니다.
+**임계값 이유**: Infura 무료 티어는 500 credits/sec (일 3M credits), Alchemy 무료 티어는 ~330 CU/sec (`getBalance` = 20 CU, 약 16.5 calls/sec)입니다. Global 100/min (~1.67/sec)은 두 provider의 무료 티어 한도 내에서 안전하게 운영 가능한 수치이며, retry와 fallback을 위한 여유분을 확보했습니다. Per-address 10/min은 15초 cache TTL과 결합하면 실제 RPC 호출은 분당 최대 4회 수준으로 제한됩니다.
 
 ### Cache
 
@@ -129,7 +129,7 @@ Cache를 통해 최신성과 효율성을 동시에 취하고자 했습니다. E
 - Key: normalized address (lowercase)
 - TTL: 15초 (Sepolia 블록 생성 주기 ~12초)
 
-**15초 선택 근거**: 블록 생성 주기인 12초보다 약간 긴 15초를 TTL로 설정하여, 최대 약 1블록 분량의 stale data만 캐싱하도록 하였습니다. 더 짧은 TTL(예: 5초)은 같은 블록 내에서도 불필요한 RPC 호출을 유발하고, 더 긴 TTL(예: 60초)은 트랜잭션 이후 약 5블록 동안 이전 잔액이 표시되어 사용자 경험에 영향을 줄 수 있습니다.
+**15초 선택 이유**: 블록 생성 주기인 12초보다 약간 긴 15초를 TTL로 설정하여, 최대 약 1블록 분량의 stale data만 캐싱하도록 하였습니다. 더 짧은 TTL(예: 5초)은 같은 블록 내에서도 불필요한 RPC 호출을 유발하고, 더 긴 TTL(예: 60초)은 트랜잭션 이후 약 5블록 동안 이전 잔액이 표시되어 사용자 경험에 영향을 줄 수 있습니다.
 
 **viem 내장 `cacheTime` 미사용 이유** ([`cacheTime`](https://viem.sh/docs/clients/public#cachetime-optional)): viem의 `cacheTime` 옵션은 `createPublicClient` 인스턴스 단위로 동작합니다. 이 프로젝트에서는 InfuraProvider와 AlchemyProvider가 각각 독립적인 클라이언트 인스턴스를 가지기 때문에, 캐시가 provider별로 분리됩니다. Infura 장애로 Alchemy로 fallback될 경우, Alchemy 클라이언트는 Infura가 이미 조회한 데이터를 알 수 없어 불필요한 RPC 호출이 발생합니다. 이에, `CachedBalanceProvider`가 provider 체인 상위에 위치하여 어떤 provider가 요청을 처리하든 캐시를 공유하도록 했습니다.
 
@@ -137,7 +137,10 @@ Cache를 통해 최신성과 효율성을 동시에 취하고자 했습니다. E
 
 느린 provider로 인한 blocking을 방지하고자 timeout을 도입하였고, 일시적인 에러(transient error)에도 대응하도록 제한된 횟수만큼만 retry하도록 구현했습니다.
 
-- Timeout: 5초 (viem의 `http` transport [`timeout`](https://viem.sh/docs/clients/transports/http#timeout-optional) 옵션)
+- Timeout: 5초 (viem의 `http` transport [`timeout`](https://viem.sh/docs/clients/transports/http#timeout-optional) 옵션, viem 기본값 10초의 절반)
+
+**5초 선택 이유**: `eth_getBalance`는 단순 읽기 요청으로 일반적인 환경에서 1초 이내에 응답합니다. 5초 내에 응답하지 않는 provider는 문제가 있는 것으로 판단할 수 있습니다. 또한 timeout은 retry 및 fallback과 결합하여 동작합니다. viem 기본값(10초)을 그대로 사용하면 단일 provider 응답 대기에 10초를 소모한 후에야 다음 단계로 넘어갑니다. 10초가 아니라 5초로 설정하면 `1차 시도(5초) → retry(~375ms 대기) → 2차 시도(5초) → Alchemy fallback` 흐름으로, 총 대기 시간은 viem 기본값과 유사하지만 그 시간 내에 2회 시도와 provider 전환까지 수행할 수 있습니다.
+
 - Retry: 최대 2회 시도, exponential backoff + jitter
   - `maxAttempts: 2`는 최초 요청을 1회로 카운트합니다. 즉, 실제 재시도(retry)는 1회이며, 총 시도 횟수가 2회입니다.
   - 1차 시도 실패 시: 250~500ms 대기 후 재시도
